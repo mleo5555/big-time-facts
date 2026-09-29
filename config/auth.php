@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Player;
 use App\Models\User;
 
 return [
@@ -42,6 +43,13 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        // Guests who join a room with a code + nickname. Separate from "web" so a player
+        // is a seat in one room, not a user account. Both guards can be signed in at once.
+        'player' => [
+            'driver' => 'session',
+            'provider' => 'players',
+        ],
     ],
 
     /*
@@ -65,6 +73,11 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', User::class),
+        ],
+
+        'players' => [
+            'driver' => 'eloquent',
+            'model' => Player::class,
         ],
 
         // 'users' => [

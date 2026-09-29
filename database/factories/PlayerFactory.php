@@ -3,6 +3,8 @@
 namespace Database\Factories;
 
 use App\Models\Player;
+use App\Models\Room;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,7 +20,19 @@ class PlayerFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'room_id' => Room::factory(),
+            'user_id' => null,
+            'nickname' => fake()->unique()->firstName(),
         ];
+    }
+
+    /**
+     * Indicate that the player joined while signed in to an account.
+     */
+    public function forUser(?User $user = null): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'user_id' => $user ?? User::factory(),
+        ]);
     }
 }
