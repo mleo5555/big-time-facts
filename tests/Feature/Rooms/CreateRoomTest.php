@@ -66,8 +66,10 @@ test('creating a room signs out any leftover player session', function () {
     $host = User::factory()->create();
     $oldPlayer = Player::factory()->create();
 
+    // Name both guards: actingAs() also makes its guard the default, so a bare
+    // actingAs($host) here would put the host into the "player" guard.
     $this->actingAs($oldPlayer, 'player')
-        ->actingAs($host)
+        ->actingAs($host, 'web')
         ->post(route('rooms.store'));
 
     $this->assertGuest('player');

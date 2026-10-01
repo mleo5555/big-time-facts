@@ -7,15 +7,20 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Actions\CreateRoom;
+use Illuminate\Support\Facades\Gate;
 
 class RoomController extends Controller
 {
     /**
      * Create a room hosted by the signed-in user.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, CreateRoom $createRoom): RedirectResponse
     {
-        abort(501, 'Not implemented yet (Step D2).');
+        $room = $createRoom->handle($request->user('web'));
+        auth('player')->logout();
+
+        return redirect()->route('rooms.host', $room);
     }
 
     /**
@@ -23,7 +28,7 @@ class RoomController extends Controller
      */
     public function host(Room $room): Response
     {
-        // Step D2 adds authorization: only the room's host may view this.
+        Gate::authorize('host', $room);
 
         return Inertia::render('rooms/Host', [
             'room' => $room->only('id', 'code'),
