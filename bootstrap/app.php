@@ -18,6 +18,12 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
+        // Where the "auth" middleware sends logged-out visitors. Players have no account,
+        // so the login page is no use to them: send them to the join page instead.
+        $middleware->redirectGuestsTo(fn (Request $request) => $request->routeIs('rooms.play')
+            ? route('join')
+            : route('login'));
+
         $middleware->web(append: [
             HandleAppearance::class,
             HandleInertiaRequests::class,

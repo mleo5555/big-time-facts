@@ -19,7 +19,11 @@ void createInertiaApp({
             case name === 'Welcome':
                 return null;
             case name.startsWith('auth/'):
+            case name === 'rooms/Join':
                 return AuthLayout;
+            // The TV screen and the phone controller are full-screen, with no app chrome.
+            case name.startsWith('rooms/'):
+                return null;
             case name.startsWith('settings/'):
                 return [AppLayout, SettingsLayout];
             default:
