@@ -3,6 +3,7 @@
 use App\Models\Player;
 use App\Models\Room;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 
 /*
@@ -72,6 +73,35 @@ test('a nickname already taken in the room is rejected', function () {
     expect($room->players->count())->toBe(1);
 
     $response->assertSessionHasErrors('nickname');
+
+    $this->assertGuest('player');
+});
+
+test('a nickname taken between validation and saving is rejected, not a server error', function () {
+    // Simulates two phones joining as "Matt" at the same instant: validation sees the name
+    // as free, then another player is inserted just before this request's own insert. Only
+    // the unique index on (room_id, nickname) can catch it, and the controller must turn
+    // that database error into the normal validation message.
+    $room = Room::factory()->create();
+
+    Player::creating(function () use ($room) {
+        // A raw insert, so it doesn't fire this "creating" listener again.
+        DB::table('players')->insert([
+            'room_id' => $room->id,
+            'nickname' => 'Matt',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    });
+
+    $response = $this->post(route('join.store'), [
+        'code' => $room->code,
+        'nickname' => 'Matt',
+    ]);
+
+    expect($room->players()->count())->toBe(1);
+
+    $response->assertSessionHasErrors(['nickname' => "That name's taken in this room. Try another!"]);
 
     $this->assertGuest('player');
 });
