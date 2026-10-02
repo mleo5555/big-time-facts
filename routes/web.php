@@ -17,7 +17,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 // Joining: open to guests. Joining signs you in on the "player" guard.
 Route::inertia('join', 'rooms/Join')->name('join');
-Route::post('join', [JoinRoomController::class, 'store'])->name('join.store');
+Route::post('join', [JoinRoomController::class, 'store'])
+    ->middleware('throttle:20,1') // 20 join attempts per minute per IP: slows code guessing
+    ->name('join.store');
 
 // Playing: requires a player session. Logged-out visitors are sent to /join (see bootstrap/app.php).
 Route::get('rooms/{room:code}/play', [PlayController::class, 'show'])

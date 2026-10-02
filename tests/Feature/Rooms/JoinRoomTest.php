@@ -221,16 +221,15 @@ test('joining a new room replaces an earlier player session', function () {
 | Rate limiting
 |--------------------------------------------------------------------------
 |
-| Only failed attempts (wrong code) count toward the limit. A whole party joining
-| from one home network shares a single IP address, so limiting every join per IP
-| would lock out the 11th guest. Guessing codes is what we're trying to slow down.
+| Every join attempt counts, 20 per minute per IP. That slows code guessing, while a
+| typical group joining from one home network (one shared IP) stays well under it.
 |
 */
 
-test('too many failed join attempts are rate limited', function () {
+test('too many join attempts are rate limited', function () {
     Room::factory()->create(['code' => 'ABCD']);
 
-    for ($i = 0; $i < 10; $i++) {
+    for ($i = 0; $i < 20; $i++) {
         $this->post(route('join.store'), ['code' => 'AAAA', 'nickname' => 'Matt'])
             ->assertSessionHasErrors('code');
     }
@@ -239,7 +238,7 @@ test('too many failed join attempts are rate limited', function () {
         ->assertTooManyRequests();
 });
 
-test('many successful joins from one network are not rate limited', function () {
+test('a group of players on one network can all join', function () {
     $room = Room::factory()->create();
 
     for ($i = 1; $i <= 15; $i++) {
